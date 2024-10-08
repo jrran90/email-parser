@@ -4,12 +4,12 @@ namespace App\Services;
 
 class EmailParserService
 {
-    public function parse($rawEmail): array|string|null
+    public function parse($rawEmail): array|string
     {
         // Split the raw email into headers and body
         $parts = explode("\r\n\r\n", $rawEmail, 2);
         if (count($parts) < 2) {
-            return null;
+            return '';
         }
 
         // Get the body part
@@ -17,19 +17,15 @@ class EmailParserService
 
         $cleanedBody = $this->decodeBody($body);
 
-        if (empty($cleanedBody)) {
-            return null;
-        }
-
-        return $cleanedBody;
+        return $cleanedBody ?: '';
     }
 
-    private function decodeBody($body): array|string|null
+    private function decodeBody($body): array|string
     {
         $extractedBodies = [];
 
         // Split the body into individual email segments based on the MIME boundaries
-        $segments = preg_split('/--_000_.*?\r\n/', $body);
+        $segments = preg_split('/--\s*([^\r\n]+)/', $body);
         foreach ($segments as $segment) {
             // Remove headers and extra spaces
             $lines = preg_split('/\r\n|\n|\r/', $segment);
@@ -59,6 +55,6 @@ class EmailParserService
         }
 
         // Join all extracted bodies with new lines, and ensure each body is separated by double new lines
-        return !empty($extractedBodies) ? implode("\n", $extractedBodies) : null;
+        return !empty($extractedBodies) ? implode("\n", $extractedBodies) : '';
     }
 }
