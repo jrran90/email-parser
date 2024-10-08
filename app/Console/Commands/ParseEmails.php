@@ -29,7 +29,14 @@ class ParseEmails extends Command
             ->orWhere('raw_text', '')
             ->chunk(50, function ($emails) {
                 foreach ($emails as $email) {
-                    $email->raw_text = $this->emailParserService->parse($email->email);
+                    $parsedBody = $this->emailParserService->parse($email->email);
+
+                    if ($parsedBody === null) {
+                        $this->info('Skipping email with ID: ' . $email->id . ' - no body content found.');
+                        continue;
+                    }
+
+                    $email->raw_text = $parsedBody;
                     $email->save();
 
                     $this->info('Parsed email: ' . $email->id);
